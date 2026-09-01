@@ -115,7 +115,7 @@ npm install
 Create a `.env` file in the root directory based on `.env.example`:
 ```env
 GROQ_API_KEY="gsk_..."
-GROQ_MODEL="llama-3.3-70b-versatile"
+GROQ_MODEL="openai/gpt-oss-20b"
 DATABASE_URL="postgresql://<user>:<password>@<neon-host>/neondb?sslmode=require"
 ```
 `GROQ_API_KEY` is required for live AI responses. `DATABASE_URL` is optional for local development. Firebase web configuration is public client configuration; restrict its authorized domains in Firebase Console.

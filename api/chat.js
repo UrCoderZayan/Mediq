@@ -82,7 +82,7 @@ If replying in another language, translate the chip text to ${targetLang} as wel
       }
       formattedMessages.push({ role: "user", content: finalContent });
 
-      const groqModel = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+      const groqModel = process.env.GROQ_MODEL || "openai/gpt-oss-20b";
 
       const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
