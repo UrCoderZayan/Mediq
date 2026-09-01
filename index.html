@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vitalis AI - Health Assistant</title>
-    <meta name="description" content="AI Symptom Checker - A modern health assistant to analyze symptoms and reports.">
+    <title>Mediq | Modern Health Assistant</title>
+    <meta name="description" content="Mediq is a modern health assistant for symptom checking, care guidance, and personalized wellness support.">
     
     <!-- External Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -50,8 +50,8 @@
             <div class="login-logo-ring">
                 <i class="fa-solid fa-heart-pulse login-logo"></i>
             </div>
-            <h2 class="login-title">Vitalis AI</h2>
-            <p class="login-subtitle">Your intelligent health companion. Sign in to get started.</p>
+            <h2 class="login-title">Mediq</h2>
+            <p class="login-subtitle">Your modern health companion. Sign in to get started.</p>
             <button class="login-btn" id="google-signin-btn">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width:20px;height:20px;margin-right:10px;"> Sign in with Google
             </button>
@@ -97,9 +97,19 @@
                     <i class="fa-solid fa-heart-pulse brand-pulse"></i>
                 </div>
                 <div class="brand-text">
-                    <span class="brand-name">Vitalis AI</span>
+                    <span class="brand-name">Mediq</span>
                 </div>
             </div>
+
+            <nav class="primary-nav" aria-label="Main navigation">
+                <button class="nav-btn active" data-view="home">Home</button>
+                <button class="nav-btn" data-view="assistant">AI Assistant</button>
+                <button class="nav-btn" data-view="symptom">Symptom Checker</button>
+                <button class="nav-btn" data-view="medicine">Medicine Search</button>
+                <button class="nav-btn" data-view="tools">Health Tools</button>
+                <button class="nav-btn" data-view="history">History</button>
+                <button class="nav-btn" data-view="about">About</button>
+            </nav>
 
             <div class="header-actions">
                 <select id="language-select" class="lang-select" title="Select Chat Language">
@@ -150,105 +160,363 @@
                 </div>
             </aside>
 
-            <!-- ── CENTER: CHAT MAIN ── -->
+            <!-- ── CENTER: MAIN APPLICATION CONTENT ── -->
             <main class="chat-main">
 
-                <div class="chat-messages" id="chat-messages">
-
-                    <!-- EMPTY STATE with new grid layout -->
-                    <div class="empty-state" id="empty-state">
-                        <div class="empty-hero-icon">
-                            <i class="fa-solid fa-dna"></i>
+                <section id="home-pane" class="view-pane landing-pane active">
+                    <div class="landing-shell">
+                        <div class="landing-hero">
+                            <div class="eyebrow"><i class="fa-solid fa-shield-heart"></i> Evidence-based health guidance</div>
+                            <h1>Take control of your health with Mediq.</h1>
+                            <p>From everyday wellness questions to symptom triage and practical health tools, Mediq helps you understand your care journey in a simple, supportive way.</p>
+                            <div class="cta-row">
+                                <button class="cta-btn primary" data-target-view="assistant">Ask Mediq</button>
+                                <button class="cta-btn secondary" data-target-view="symptom">Check Symptoms</button>
+                            </div>
+                            <div class="mini-stats">
+                                <div class="stat-card">
+                                    <strong>24/7</strong>
+                                    <span>Health info access</span>
+                                </div>
+                                <div class="stat-card">
+                                    <strong>Smart</strong>
+                                    <span>Symptom support</span>
+                                </div>
+                                <div class="stat-card">
+                                    <strong>Clear</strong>
+                                    <span>Medical guidance</span>
+                                </div>
+                            </div>
                         </div>
-                        <h3 class="empty-title">How can <span class="brand-highlight">Vitalis</span> help you today?</h3>
-                        <p class="empty-subtitle">Describe your symptoms, upload a lab report, or use the body map to isolate areas of discomfort.</p>
 
-                        <div class="prompt-grid">
-                            <button class="quick-prompt-btn prompt-card" data-text="I am experiencing a severe headache and fever.">
-                                <div class="prompt-card-icon vi">
-                                    <i class="fa-solid fa-head-side-virus"></i>
-                                </div>
-                                <div class="prompt-card-body">
-                                    <span class="prompt-card-title">Headache &amp; Fever</span>
-                                    <span class="prompt-card-desc">Analyze head pain &amp; temperature</span>
-                                </div>
-                            </button>
-                            <button class="quick-prompt-btn prompt-card" data-text="I have an upset stomach and feel nauseous.">
-                                <div class="prompt-card-icon cy">
-                                    <i class="fa-solid fa-virus"></i>
-                                </div>
-                                <div class="prompt-card-body">
-                                    <span class="prompt-card-title">Stomach Issues</span>
-                                    <span class="prompt-card-desc">Nausea, bloating &amp; digestion</span>
-                                </div>
-                            </button>
-                            <button class="quick-prompt-btn prompt-card" data-text="I have a sore throat, runny nose, and a persistent cough.">
-                                <div class="prompt-card-icon em">
-                                    <i class="fa-solid fa-lungs-virus"></i>
-                                </div>
-                                <div class="prompt-card-body">
-                                    <span class="prompt-card-title">Cold &amp; Cough</span>
-                                    <span class="prompt-card-desc">Throat, cough &amp; respiratory</span>
-                                </div>
-                            </button>
-                            <button class="quick-prompt-btn prompt-card" data-text="I have pain and aching in my joints and muscles.">
-                                <div class="prompt-card-icon am">
-                                    <i class="fa-solid fa-bone"></i>
-                                </div>
-                                <div class="prompt-card-body">
-                                    <span class="prompt-card-title">Joint / Muscle Pain</span>
-                                    <span class="prompt-card-desc">Aches, joints &amp; mobility</span>
-                                </div>
-                            </button>
-                            <button class="quick-prompt-btn prompt-card" data-text="I have developed a skin rash that is red and itchy.">
-                                <div class="prompt-card-icon ro">
-                                    <i class="fa-solid fa-hand-dots"></i>
-                                </div>
-                                <div class="prompt-card-body">
-                                    <span class="prompt-card-title">Skin Rash / Allergy</span>
-                                    <span class="prompt-card-desc">Rash, itching &amp; reactions</span>
-                                </div>
-                            </button>
-                            <button class="quick-prompt-btn prompt-card" data-text="I have been feeling unusually tired and fatigued lately.">
-                                <div class="prompt-card-icon vi">
-                                    <i class="fa-solid fa-battery-half"></i>
-                                </div>
-                                <div class="prompt-card-body">
-                                    <span class="prompt-card-title">Fatigue &amp; Tiredness</span>
-                                    <span class="prompt-card-desc">Exhaustion &amp; energy loss</span>
-                                </div>
-                            </button>
+                        <div class="landing-grid">
+                            <div class="feature-card">
+                                <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
+                                <h3>AI Assistant</h3>
+                                <p>Get quick, structured answers to health questions in plain language.</p>
+                                <button class="inline-link" data-target-view="assistant">Open assistant</button>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon"><i class="fa-solid fa-notes-medical"></i></div>
+                                <h3>Symptom Checker</h3>
+                                <p>Review common patterns, triggers, and safety guidance for concerns.</p>
+                                <button class="inline-link" data-target-view="symptom">Explore symptoms</button>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon"><i class="fa-solid fa-pills"></i></div>
+                                <h3>Medicine Search</h3>
+                                <p>Look up common medicine information and usage basics in a cleaner layout.</p>
+                                <button class="inline-link" data-target-view="medicine">Search medicine</button>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon"><i class="fa-solid fa-kit-medical"></i></div>
+                                <h3>Health Tools</h3>
+                                <p>Use straightforward tools for body questions, pain checks, and care prompts.</p>
+                                <button class="inline-link" data-target-view="tools">View tools</button>
+                            </div>
                         </div>
                     </div>
+                </section>
 
-                </div><!-- end chat-messages -->
+                <section id="assistant-pane" class="view-pane">
+                    <div class="chat-messages" id="chat-messages">
 
-                <!-- Image preview -->
-                <div class="preview-container" id="preview-container" style="display:none;">
-                    <div class="preview-box">
-                        <img id="image-preview" src="" alt="Report Preview">
-                        <button id="remove-image" class="remove-btn" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+                        <!-- EMPTY STATE with new grid layout -->
+                        <div class="empty-state" id="empty-state">
+                            <div class="empty-hero-icon">
+                                <i class="fa-solid fa-dna"></i>
+                            </div>
+                            <h3 class="empty-title">How can <span class="brand-highlight">Mediq</span> help you today?</h3>
+                            <p class="empty-subtitle">Describe your symptoms, upload a lab report, or use the body map to isolate areas of discomfort.</p>
+
+                            <div class="prompt-grid">
+                                <button class="quick-prompt-btn prompt-card" data-text="I am experiencing a severe headache and fever.">
+                                    <div class="prompt-card-icon vi">
+                                        <i class="fa-solid fa-head-side-virus"></i>
+                                    </div>
+                                    <div class="prompt-card-body">
+                                        <span class="prompt-card-title">Headache &amp; Fever</span>
+                                        <span class="prompt-card-desc">Analyze head pain &amp; temperature</span>
+                                    </div>
+                                </button>
+                                <button class="quick-prompt-btn prompt-card" data-text="I have an upset stomach and feel nauseous.">
+                                    <div class="prompt-card-icon cy">
+                                        <i class="fa-solid fa-virus"></i>
+                                    </div>
+                                    <div class="prompt-card-body">
+                                        <span class="prompt-card-title">Stomach Issues</span>
+                                        <span class="prompt-card-desc">Nausea, bloating &amp; digestion</span>
+                                    </div>
+                                </button>
+                                <button class="quick-prompt-btn prompt-card" data-text="I have a sore throat, runny nose, and a persistent cough.">
+                                    <div class="prompt-card-icon em">
+                                        <i class="fa-solid fa-lungs-virus"></i>
+                                    </div>
+                                    <div class="prompt-card-body">
+                                        <span class="prompt-card-title">Cold &amp; Cough</span>
+                                        <span class="prompt-card-desc">Throat, cough &amp; respiratory</span>
+                                    </div>
+                                </button>
+                                <button class="quick-prompt-btn prompt-card" data-text="I have pain and aching in my joints and muscles.">
+                                    <div class="prompt-card-icon am">
+                                        <i class="fa-solid fa-bone"></i>
+                                    </div>
+                                    <div class="prompt-card-body">
+                                        <span class="prompt-card-title">Joint / Muscle Pain</span>
+                                        <span class="prompt-card-desc">Aches, joints &amp; mobility</span>
+                                    </div>
+                                </button>
+                                <button class="quick-prompt-btn prompt-card" data-text="I have developed a skin rash that is red and itchy.">
+                                    <div class="prompt-card-icon ro">
+                                        <i class="fa-solid fa-hand-dots"></i>
+                                    </div>
+                                    <div class="prompt-card-body">
+                                        <span class="prompt-card-title">Skin Rash / Allergy</span>
+                                        <span class="prompt-card-desc">Rash, itching &amp; reactions</span>
+                                    </div>
+                                </button>
+                                <button class="quick-prompt-btn prompt-card" data-text="I have been feeling unusually tired and fatigued lately.">
+                                    <div class="prompt-card-icon vi">
+                                        <i class="fa-solid fa-battery-half"></i>
+                                    </div>
+                                    <div class="prompt-card-body">
+                                        <span class="prompt-card-title">Fatigue &amp; Tiredness</span>
+                                        <span class="prompt-card-desc">Exhaustion &amp; energy loss</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div><!-- end chat-messages -->
+
+                    <!-- Image preview -->
+                    <div class="preview-container" id="preview-container" style="display:none;">
+                        <div class="preview-box">
+                            <img id="image-preview" src="" alt="Report Preview">
+                            <button id="remove-image" class="remove-btn" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <span class="preview-text"><i class="fa-solid fa-paperclip"></i> Attachment ready</span>
                     </div>
-                    <span class="preview-text"><i class="fa-solid fa-paperclip"></i> Attachment ready</span>
-                </div>
 
-                <!-- Suggestion chips -->
-                <div id="suggestion-chips" class="suggestion-chips"></div>
+                    <!-- Suggestion chips -->
+                    <div id="suggestion-chips" class="suggestion-chips"></div>
 
-                <!-- Input bar -->
-                <div class="chat-input-container">
-                    <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp" style="display:none;">
-                    <div class="input-tools">
-                        <button id="upload-btn" class="action-btn" title="Upload Report"><i class="fa-solid fa-paperclip"></i></button>
-                        <button id="body-map-btn" class="action-btn" title="Body Map"><i class="fa-solid fa-child"></i></button>
-                        <button id="pain-btn" class="action-btn" title="Pain Scale"><i class="fa-solid fa-temperature-half"></i></button>
-                        <button id="mic-btn" class="action-btn" title="Voice Input"><i class="fa-solid fa-microphone"></i></button>
+                    <!-- Input bar -->
+                    <div class="chat-input-container">
+                        <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp" style="display:none;">
+                        <div class="input-tools">
+                            <button id="upload-btn" class="action-btn" title="Upload Report"><i class="fa-solid fa-paperclip"></i></button>
+                            <button id="body-map-btn" class="action-btn" title="Body Map"><i class="fa-solid fa-child"></i></button>
+                            <button id="pain-btn" class="action-btn" title="Pain Scale"><i class="fa-solid fa-temperature-half"></i></button>
+                            <button id="mic-btn" class="action-btn" title="Voice Input"><i class="fa-solid fa-microphone"></i></button>
+                        </div>
+                        <div class="input-field-wrap">
+                            <input type="text" id="user-input" placeholder="Describe your symptoms or ask a health question..." autocomplete="off">
+                        </div>
+                        <button id="send-btn" class="send-btn" title="Send"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
-                    <div class="input-field-wrap">
-                        <input type="text" id="user-input" placeholder="Describe your symptoms or ask a health question..." autocomplete="off">
+                </section>
+
+                <section id="symptom-pane" class="view-pane content-pane">
+                    <div class="content-panel">
+                        <div class="content-header">
+                            <span class="eyebrow"><i class="fa-solid fa-stethoscope"></i> Symptom Checker</span>
+                            <h2>Structured health symptom intake</h2>
+                        </div>
+
+                        <form id="symptom-checker-form" class="symptom-form">
+                            <div class="form-row">
+                                <label class="field-label" for="symptom-input">Symptoms</label>
+                                <textarea id="symptom-input" rows="4" placeholder="Example: severe headache, nausea, fever, chest discomfort"></textarea>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="field-group">
+                                    <label class="field-label" for="symptom-duration">How long?</label>
+                                    <select id="symptom-duration">
+                                        <option value="">Select duration</option>
+                                        <option value="less-than-24-hours">Less than 24 hours</option>
+                                        <option value="1-3-days">1–3 days</option>
+                                        <option value="4-7-days">4–7 days</option>
+                                        <option value="more-than-1-week">More than 1 week</option>
+                                        <option value="ongoing">Ongoing / recurring</option>
+                                    </select>
+                                </div>
+
+                                <div class="field-group">
+                                    <label class="field-label">Severity</label>
+                                    <div class="severity-options" role="radiogroup" aria-label="Symptom severity">
+                                        <label class="severity-option">
+                                            <input type="radio" name="symptom-severity" value="Mild">
+                                            <span>Mild</span>
+                                        </label>
+                                        <label class="severity-option">
+                                            <input type="radio" name="symptom-severity" value="Moderate">
+                                            <span>Moderate</span>
+                                        </label>
+                                        <label class="severity-option">
+                                            <input type="radio" name="symptom-severity" value="Severe">
+                                            <span>Severe</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <label class="field-label" for="symptom-context">Additional context (optional)</label>
+                                <textarea id="symptom-context" rows="3" placeholder="Add relevant context like timing, triggers, fever, swelling, or recent events."></textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="cta-btn primary">Submit Symptoms</button>
+                                <button type="button" id="symptom-reset-btn" class="cta-btn secondary">Reset</button>
+                            </div>
+                        </form>
+
+                        <div id="symptom-result" class="symptom-result hidden" aria-live="polite">
+                            <div id="symptom-urgent-warning" class="urgent-warning hidden">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <div>
+                                    <strong>Urgent warning</strong>
+                                    <p>Some symptoms may indicate a medical emergency. Please seek immediate professional or emergency medical care without delay.</p>
+                                </div>
+                            </div>
+
+                            <div class="result-summary">
+                                <h3>Symptom summary</h3>
+                                <div id="symptom-summary-text"></div>
+                            </div>
+
+                            <button id="symptom-to-assistant-btn" class="cta-btn primary" type="button">Send summary to AI Assistant</button>
+                        </div>
                     </div>
-                    <button id="send-btn" class="send-btn" title="Send"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
+                </section>
+
+                <section id="medicine-pane" class="view-pane content-pane">
+                    <div class="content-panel">
+                        <div class="content-header">
+                            <span class="eyebrow"><i class="fa-solid fa-pills"></i> Medicine Search</span>
+                            <h2>Search medication information</h2>
+                        </div>
+
+                        <div class="medicine-search-panel">
+                            <form id="medicine-search-form" class="medicine-search-form">
+                                <div class="search-box medicine-search-box">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input id="medicine-search-input" type="text" placeholder="Search by medicine or drug name" autocomplete="off" />
+                                </div>
+                                <button type="submit" class="cta-btn primary">Search</button>
+                            </form>
+
+                            <div id="medicine-search-status" class="medicine-search-status" aria-live="polite"></div>
+                            <div id="medicine-search-results" class="medicine-results"></div>
+                        </div>
+
+                        <div class="info-disclaimer">
+                            <strong>Educational reference only.</strong> This information is for educational and reference purposes and is not personalized medical advice or a diagnosis.
+                        </div>
+                    </div>
+                </section>
+
+                <section id="tools-pane" class="view-pane content-pane">
+                    <div class="content-panel">
+                        <div class="content-header">
+                            <span class="eyebrow"><i class="fa-solid fa-kit-medical"></i> Health Tools</span>
+                            <h2>Helpful self-care resources</h2>
+                        </div>
+
+                        <div class="tools-grid">
+                            <div class="tool-card">
+                                <h3>BMI Calculator</h3>
+                                <div class="tool-form">
+                                    <label>
+                                        <span>Height (cm)</span>
+                                        <input id="bmi-height" type="number" min="50" max="250" step="0.1" placeholder="170" />
+                                    </label>
+                                    <label>
+                                        <span>Weight (kg)</span>
+                                        <input id="bmi-weight" type="number" min="20" max="300" step="0.1" placeholder="65" />
+                                    </label>
+                                    <button type="button" class="cta-btn secondary" id="bmi-calc-btn">Calculate BMI</button>
+                                </div>
+                                <div id="bmi-result" class="tool-result">Enter height and weight to calculate.</div>
+                            </div>
+
+                            <div class="tool-card">
+                                <h3>BMR Calculator</h3>
+                                <div class="tool-form">
+                                    <label>
+                                        <span>Formula</span>
+                                        <select id="bmr-formula">
+                                            <option value="mifflin">Mifflin-St Jeor</option>
+                                            <option value="harris">Harris-Benedict</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span>Age</span>
+                                        <input id="bmr-age" type="number" min="1" max="120" placeholder="30" />
+                                    </label>
+                                    <label>
+                                        <span>Height (cm)</span>
+                                        <input id="bmr-height" type="number" min="50" max="250" step="0.1" placeholder="170" />
+                                    </label>
+                                    <label>
+                                        <span>Weight (kg)</span>
+                                        <input id="bmr-weight" type="number" min="20" max="300" step="0.1" placeholder="65" />
+                                    </label>
+                                    <label>
+                                        <span>Sex</span>
+                                        <select id="bmr-sex">
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                        </select>
+                                    </label>
+                                    <button type="button" class="cta-btn secondary" id="bmr-calc-btn">Calculate BMR</button>
+                                </div>
+                                <div id="bmr-result" class="tool-result">Formula: Mifflin-St Jeor. Enter values to estimate BMR.</div>
+                            </div>
+
+                            <div class="tool-card wide-tool-card">
+                                <h3>Heart Rate Zone Calculator</h3>
+                                <div class="tool-form">
+                                    <label>
+                                        <span>Age</span>
+                                        <input id="hr-age" type="number" min="1" max="120" placeholder="30" />
+                                    </label>
+                                    <button type="button" class="cta-btn secondary" id="hr-calc-btn">Estimate Zones</button>
+                                </div>
+                                <div id="hr-result" class="tool-result">Estimated maximum heart rate is based on age only and is not a medical reading.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="history-pane" class="view-pane content-pane">
+                    <div class="content-panel">
+                        <div class="content-header">
+                            <span class="eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> History</span>
+                            <h2>Your recent health activity</h2>
+                        </div>
+                        <div class="history-note">Local history is stored only in your browser using localStorage.</div>
+                        <div class="history-actions">
+                            <button id="clear-history-btn" class="cta-btn secondary" type="button">Clear History</button>
+                        </div>
+                        <div id="history-list" class="history-list"></div>
+                    </div>
+                </section>
+
+                <section id="about-pane" class="view-pane content-pane">
+                    <div class="content-panel">
+                        <div class="content-header">
+                            <span class="eyebrow"><i class="fa-solid fa-circle-info"></i> About</span>
+                            <h2>Designed to make health information clearer</h2>
+                        </div>
+                        <div class="about-copy">
+                            <p>Mediq is a health-information assistant built to help people explore symptoms, understand medications, and navigate everyday wellness questions with better structure and guidance.</p>
+                            <p>It keeps the existing chatbot experience while adding a cleaner application layout for a broader health platform experience.</p>
+                        </div>
+                    </div>
+                </section>
 
             </main><!-- end chat-main -->
 
@@ -292,7 +560,7 @@
                     <!-- Disclaimer -->
                     <div class="card disclaimer-card">
                         <h4><i class="fa-solid fa-triangle-exclamation"></i> Disclaimer</h4>
-                        <p class="text-sm mock-text">Vitalis is an AI built for educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
+                        <p class="text-sm mock-text">Mediq is an AI built for educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
                     </div>
 
                 </div>

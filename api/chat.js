@@ -12,6 +12,14 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: "No message provided." });
   }
 
+  if (userMessage.length > 4000) {
+    return res.status(413).json({ error: "Please keep your message under 4,000 characters." });
+  }
+
+  if (image && (typeof image !== "string" || image.length > 5_000_000)) {
+    return res.status(413).json({ error: "Please upload an image smaller than 5 MB." });
+  }
+
   const targetLang = language || "English";
 
   // Check API keys: Prioritize GROQ_API_KEY, or CUSTOM_LLM_API_KEY if it's a Groq key (gsk_...)
@@ -31,27 +39,28 @@ module.exports = async (req, res) => {
       ragContextText += `Patient Query: ${item.patient_query}\n`;
       ragContextText += `Verified Doctor Clinical Advice: ${item.doctor_response}\n\n`;
     });
-    ragContextText += `INSTRUCTION FOR VITALIS AI: You MUST ground your clinical considerations, differential diagnoses, and self-care recommendations in the verified ChatDoctor clinical consultations retrieved above.\n==================================================================`;
+    ragContextText += `INSTRUCTION FOR MEDIQ: You MUST ground your clinical considerations, differential diagnoses, and self-care recommendations in the verified ChatDoctor clinical consultations retrieved above.\n==================================================================`;
   }
 
   // 1. If Groq API Key is available (Alternative 1: High Performance, Zero Timeouts, Free Llama-3 70B)
   if (groqApiKey) {
     try {
-      const systemPrompt = `You are Vitalis AI, an advanced, empathetic, and clinical healthcare AI assistant created by Ritik and the Vitalis AI Team. You are powered by extensive medical triage protocols and grounded in the ChatDoctor clinical dataset.${ragContextText}
+      const systemPrompt = `You are Mediq, an empathetic health-information assistant. You are not a doctor and cannot diagnose conditions, interpret medical images with certainty, prescribe medicines, or replace a qualified clinician. You are grounded in the ChatDoctor clinical dataset for educational context only.${ragContextText}
 
 YOUR CLINICAL BEHAVIOR & PROTOCOLS:
 1. EMPATHY & CLARITY: Always greet the patient warmly, validate their feelings/symptoms, and explain medical terms cleanly and simply.
 2. STRUCTURED TRIAGE: When a patient describes symptoms or asks health questions, structure your answer clearly:
-   - **Potential Considerations**: Discuss possible causes (from common benign issues to conditions requiring closer monitoring), grounded in your RAG knowledge.
+    - **Potential Considerations**: Discuss broad possibilities without claiming a diagnosis or certainty. Never imply that a retrieved case proves the user's condition.
    - **Key Questions**: Ask 2-3 targeted clarifying questions (e.g., duration, severity, fever, accompanying symptoms).
-   - **Self-Care / Home Relief**: Suggest safe, evidence-based home comfort or lifestyle measures for mild symptoms if appropriate.
+    - **Self-Care / Home Relief**: Suggest general, low-risk comfort or lifestyle measures for mild symptoms if appropriate. Do not provide personalized prescriptions, dosing changes, or instructions to stop prescribed treatment.
    - **When to Seek Immediate Medical Attention**: Highlight critical "red flag" symptoms that require emergency care or a doctor's visit.
-3. LANGUAGE REQUIREMENT: The user wants to communicate in ${targetLang}. You MUST respond EXCLUSIVELY, fluently, and naturally in ${targetLang}.
-4. INTERACTIVE SUGGESTION CHIPS: At the very end of your response, on a new line, ALWAYS provide exactly 2 or 3 relevant, brief follow-up questions formatted strictly as:
+  3. SAFETY: If emergency warning signs are present, advise local emergency services immediately. Encourage professional medical care whenever symptoms are severe, worsening, persistent, or uncertain.
+  4. LANGUAGE REQUIREMENT: The user wants to communicate in ${targetLang}. You MUST respond EXCLUSIVELY, fluently, and naturally in ${targetLang}.
+  5. INTERACTIVE SUGGESTION CHIPS: At the very end of your response, on a new line, ALWAYS provide exactly 2 or 3 relevant, brief follow-up questions formatted strictly as:
 [CHIP: Option 1 text] [CHIP: Option 2 text] [CHIP: Option 3 text]
 Example in English: [CHIP: What home remedies help?] [CHIP: Should I see a doctor today?] [CHIP: Explain differential diagnosis]
 If replying in another language, translate the chip text to ${targetLang} as well.
-5. SAFETY DISCLAIMER: Always remind the patient that your guidance is for educational and clinical triaging purposes and they should consult a qualified healthcare professional for official medical diagnosis or prescriptions.`;
+  6. LIMITATIONS: Always remind the patient that your guidance is educational, not a diagnosis or prescription, and that a qualified healthcare professional should provide official assessment and treatment.`;
 
       // Format conversation history for Groq OpenAI-compatible format
       const formattedMessages = [{ role: "system", content: systemPrompt }];
@@ -106,7 +115,7 @@ If replying in another language, translate the chip text to ${targetLang} as wel
       });
     } catch (err) {
       console.error("Error calling Groq API:", err);
-      return res.status(500).json({ error: "Failed to communicate with Vitalis AI Brain (Groq API)." });
+      return res.status(502).json({ error: "Mediq could not reach the AI service. Please try again shortly." });
     }
   }
 
@@ -137,8 +146,9 @@ If replying in another language, translate the chip text to ${targetLang} as wel
       const data = await response.json();
       let finalOutput = data.output || data.response;
       if (finalOutput) {
-        finalOutput = finalOutput.replace(/Chat Doctor/gi, "Vitalis AI");
-        finalOutput = finalOutput.replace(/ChatDoctor/gi, "Vitalis AI");
+        finalOutput = String(finalOutput);
+        finalOutput = finalOutput.replace(/Chat Doctor/gi, "Mediq");
+        finalOutput = finalOutput.replace(/ChatDoctor/gi, "Mediq");
       }
       return res.status(200).json({ 
         response: finalOutput, 
@@ -148,15 +158,9 @@ If replying in another language, translate the chip text to ${targetLang} as wel
       });
     } catch (err) {
       console.error("Error calling Custom LLM URL:", err);
-      return res.status(500).json({ error: "Failed to connect to Custom LLM." });
+      return res.status(502).json({ error: "Mediq could not reach the AI service. Please try again shortly." });
     }
   }
 
-  // 3. If no valid API key is configured yet, provide clear, step-by-step instructions
-  return res.status(200).json({ 
-    response: `[Vitalis AI System Setup Required]\n\nWelcome to your custom **Vitalis AI** chatbot brain! To enable instant **500+ tokens/second** Llama-3 70B medical triaging without timeouts (Alternative 1):\n\n1. Get your **100% Free API Key** at [console.groq.com/keys](https://console.groq.com/keys).\n2. Add the environment variable to Vercel Project Settings (or local \`.env\` file):\n   - **Variable Name:** \`GROQ_API_KEY\`\n   - **Value:** \`gsk_...\` (your key)\n3. Redeploy on Vercel or restart your local server.\n\n*(You sent: "${userMessage}")*`,
-    output: `[Vitalis AI System Setup Required]\n\nWelcome to your custom **Vitalis AI** chatbot brain! To enable instant **500+ tokens/second** Llama-3 70B medical triaging without timeouts (Alternative 1):\n\n1. Get your **100% Free API Key** at [console.groq.com/keys](https://console.groq.com/keys).\n2. Add the environment variable to Vercel Project Settings (or local \`.env\` file):\n   - **Variable Name:** \`GROQ_API_KEY\`\n   - **Value:** \`gsk_...\` (your key)\n3. Redeploy on Vercel or restart your local server.\n\n*(You sent: "${userMessage}")*`,
-    rag_context: retrievedCases,
-    triage: triageInfo
-  });
+  return res.status(503).json({ error: "The Mediq AI service is not configured yet. Please add the server-side AI environment variable." });
 };

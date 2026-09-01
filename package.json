@@ -1,7 +1,7 @@
 {
-  "name": "vitalis-ai",
+  "name": "mediq",
   "version": "1.0.0",
-  "description": "Vitalis AI - Health Assistant",
+  "description": "Mediq - Health Assistant",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

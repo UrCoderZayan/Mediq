@@ -1,9 +1,9 @@
 <div align="center">
   <img src="./assets/vitalis.png" alt="Vitalis AI Banner" width="100%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
   
-  # 🧬 Vitalis AI
+  # � Mediq
   
-  **An intelligent, futuristic healthcare assistant powered by a custom fine-tuned Large Language Model (Llama-3).**
+  **A secure, educational health-information assistant with structured safety guidance.**
   
   [![Powered by Llama 3](https://img.shields.io/badge/Powered%20by-Llama%203-blue?style=for-the-badge)](https://ai.meta.com/llama/)
   [![Hosted on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/)
@@ -11,13 +11,13 @@
   ![License](https://img.shields.io/github/license/Ritik0102-bit/Vitalis-AI?style=for-the-badge)
 </div>
 
-## 📖 About Vitalis AI
+## 📖 About Mediq
 
-**Vitalis AI** is a next-generation, clinical-grade healthcare chatbot designed to democratize access to medical information. Traditional healthcare can often be slow and inaccessible, leaving patients anxious while waiting for basic symptom analysis. Vitalis AI bridges this gap by providing immediate, highly accurate, and empathetic medical insights directly from your browser. 
+**Mediq** is a health-information assistant designed to help users explore symptoms, medicine references, and everyday wellness questions. It is educational only and does not diagnose conditions, prescribe treatment, or replace professional medical care.
 
-Built with a stunning, responsive **glassmorphism UI**, the application feels premium, intuitive, and deeply interactive. Under the hood, the brain of Vitalis is powered by a **custom fine-tuned Llama-3 (8B) Large Language Model**. By specifically training the model on the comprehensive *ChatDoctor* dataset using cutting-edge Unsloth optimization techniques, Vitalis transcends generic AI responses. It acts as a specialized medical assistant capable of interpreting symptoms, asking dynamic follow-up questions, supporting multiple languages in real-time, and generating personalized daily health tips.
+Built with a responsive **glassmorphism UI**, the application provides structured health information, symptom safety checks, medicine references, local health tools, and multilingual assistant responses. AI requests pass through a server-side API route so provider credentials never reach the browser.
 
-Whether you are logging a minor headache using our interactive human body map, uploading clinical images for context, or exporting a diagnostic session as a PDF for your doctor, Vitalis AI is engineered to be the ultimate personal health hub.
+Whether you are logging a minor headache using the interactive body map, uploading an image for context, or exporting a session for discussion with a clinician, Mediq is designed as an educational personal health hub.
 
 ---
 
@@ -48,8 +48,8 @@ Whether you are logging a minor headache using our interactive human body map, u
 | 🔐 **Secure Authentication** | Google Sign-In powered by Firebase Authentication for seamless onboarding. |
 | 🗄️ **Persistent Data** | Saves user profiles and demographic data using NeonDB (Serverless PostgreSQL). |
 | 🗂️ **Session Management** | Start new consultations, view past history, and rename/delete previous chat sessions. |
-| 🧠 **Custom Healthcare AI** | Powered by a fine-tuned Llama-3 8B model (trained via Unsloth on the ChatDoctor dataset). |
-| ☁️ **Serverless Inference** | AI model compressed to GGUF format and hosted 24/7 on Hugging Face Spaces via FastAPI. |
+| 🧠 **Secure Healthcare AI** | Uses a server-side Groq-compatible API proxy with health-information safety instructions. |
+| ☁️ **Serverless Inference** | `/api/chat` keeps provider credentials on the server and is compatible with Vercel Functions. |
 | 🧍 **Interactive Body Map** | Pinpoint exactly where it hurts using a clickable SVG human anatomy map. |
 | 🌡️ **Dynamic Pain Scale** | Log symptom severity with a visual 1-10 slider featuring animated emoji feedback. |
 | 💬 **Smart Suggestions** | Context-aware follow-up questions generated to guide the conversation. |
@@ -73,10 +73,9 @@ Whether you are logging a minor headache using our interactive human body map, u
 - **NeonDB:** Serverless PostgreSQL database for persistent user data and chat session storage.
 
 ### **Artificial Intelligence Engine**
-- **Base Model:** Meta Llama-3 (8 Billion Parameters).
-- **Fine-tuning:** LoRA fine-tuning using Unsloth & Google Colab on the Hugging Face `ChatDoctor` dataset.
-- **Inference:** `llama.cpp` (GGUF compression) hosted via FastAPI and Uvicorn.
-- **AI Hosting:** Hugging Face Spaces (Docker environment) for a free, 24/7 endpoint.
+- **Provider:** Groq's OpenAI-compatible API, called only from the server-side `/api/chat` route.
+- **Model:** Configurable through the server-only `GROQ_MODEL` environment variable.
+- **Safety:** Responses are framed as educational information with red-flag escalation and professional-care guidance.
 
 ---
 
@@ -85,7 +84,7 @@ Whether you are logging a minor headache using our interactive human body map, u
 ```text
 Vitalis-AI/
 ├── api/                 # Vercel Serverless Functions (Node.js/Postgres/Fetch)
-│   ├── chat.js          # Proxies chat requests to Hugging Face Space
+│   ├── chat.js          # Securely proxies chat requests to the configured AI provider
 │   ├── getUser.js       # Fetches user demographics from NeonDB
 │   ├── saveUser.js      # Saves new Google Auth users into NeonDB
 │   ├── getHistory.js    # Fetches past chat sessions and messages
@@ -113,27 +112,28 @@ npm install
 ```
 
 ### 2. Environment Variables
-Create a `.env` file in the root directory and add your credentials:
+Create a `.env` file in the root directory based on `.env.example`:
 ```env
+GROQ_API_KEY="gsk_..."
+GROQ_MODEL="llama-3.3-70b-versatile"
 DATABASE_URL="postgresql://<user>:<password>@<neon-host>/neondb?sslmode=require"
-CUSTOM_LLM_URL="https://your-huggingface-space.hf.space/chat"
 ```
-*(Ensure your Firebase configuration keys are updated in `index.html`).*
+`GROQ_API_KEY` is required for live AI responses. `DATABASE_URL` is optional for local development. Firebase web configuration is public client configuration; restrict its authorized domains in Firebase Console.
 
 ### 3. Run Locally (Vercel Dev)
-Because this project utilizes Serverless APIs, you must run it using the Vercel CLI:
+For the lightweight local server:
 ```bash
-npm i -g vercel
-vercel dev
+npm install
+npm run dev
 ```
-The application will now be available at `http://localhost:3000`.
+The application is available at `http://localhost:3000`. To test Vercel's serverless runtime locally, install the CLI and run `vercel dev` instead.
 
 ### 4. Deploy to Production
 To deploy your application publicly:
 ```bash
 vercel --prod
 ```
-*Note: Make sure to add your Environment Variables to the Vercel Dashboard, and whitelist your new Vercel domain in your Firebase Auth settings!*
+In Vercel Project Settings, add `GROQ_API_KEY` and optionally `GROQ_MODEL` and `DATABASE_URL` under the correct environments, then redeploy. Never prefix server secrets with `VITE_`, `NEXT_PUBLIC_`, or another public-client prefix. Add the deployed domain to Firebase Authentication's authorized domains.
 
 ---
 
@@ -144,7 +144,7 @@ vercel --prod
 3. **Describe Symptoms:** Type your symptoms into the chat box, click the Microphone icon to dictate them, or use the Quick Action Prompts.
 4. **Visual Tools:** Utilize the Child Icon for the Body Map or the Thermometer for the pain scale.
 5. **Manage Consultations:** Navigate between past sessions using the left sidebar. Hover over any past session to rename or delete it.
-6. **Interact:** Receive hyper-accurate, empathetic medical responses generated directly from the Custom Llama-3 AI server.
+6. **Interact:** Receive structured educational health information from the server-side AI proxy. For urgent warning signs, contact local emergency services or a qualified clinician.
 
 ---
 

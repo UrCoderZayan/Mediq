@@ -12,6 +12,480 @@ document.addEventListener("DOMContentLoaded", () => {
     const displayUserGender = document.getElementById('display-user-gender');
     const googleSignoutBtn = document.getElementById('google-signout-btn');
     const toast = document.getElementById("toast");
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const viewPanes = document.querySelectorAll('.view-pane');
+    const ctaButtons = document.querySelectorAll('[data-target-view]');
+
+    const symptomForm = document.getElementById('symptom-checker-form');
+    const symptomInput = document.getElementById('symptom-input');
+    const symptomDuration = document.getElementById('symptom-duration');
+    const symptomResult = document.getElementById('symptom-result');
+    const symptomSummaryText = document.getElementById('symptom-summary-text');
+    const symptomUrgentWarning = document.getElementById('symptom-urgent-warning');
+    const symptomResetBtn = document.getElementById('symptom-reset-btn');
+    const symptomToAssistantBtn = document.getElementById('symptom-to-assistant-btn');
+
+    const medicineSearchForm = document.getElementById('medicine-search-form');
+    const medicineSearchInput = document.getElementById('medicine-search-input');
+    const medicineSearchStatus = document.getElementById('medicine-search-status');
+    const medicineSearchResults = document.getElementById('medicine-search-results');
+
+    const bmiHeight = document.getElementById('bmi-height');
+    const bmiWeight = document.getElementById('bmi-weight');
+    const bmiResult = document.getElementById('bmi-result');
+    const bmiCalcBtn = document.getElementById('bmi-calc-btn');
+
+    const bmrFormula = document.getElementById('bmr-formula');
+    const bmrAge = document.getElementById('bmr-age');
+    const bmrHeight = document.getElementById('bmr-height');
+    const bmrWeight = document.getElementById('bmr-weight');
+    const bmrSex = document.getElementById('bmr-sex');
+    const bmrResult = document.getElementById('bmr-result');
+    const bmrCalcBtn = document.getElementById('bmr-calc-btn');
+
+    const hrAge = document.getElementById('hr-age');
+    const hrResult = document.getElementById('hr-result');
+    const hrCalcBtn = document.getElementById('hr-calc-btn');
+
+    const historyList = document.getElementById('history-list');
+    const clearHistoryBtn = document.getElementById('clear-history-btn');
+    const MEDIQ_HISTORY_KEY = 'mediq-local-history';
+
+    function setActiveView(targetView) {
+        navButtons.forEach(button => {
+            const isActive = button.dataset.view === targetView;
+            button.classList.toggle('active', isActive);
+        });
+
+        viewPanes.forEach(pane => {
+            const isActive = pane.id === `${targetView}-pane`;
+            pane.classList.toggle('active', isActive);
+        });
+    }
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            setActiveView(button.dataset.view);
+        });
+    });
+
+    ctaButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const target = button.dataset.targetView;
+            if (target) setActiveView(target);
+        });
+    });
+
+    function normalizeSymptomText(value) {
+        return String(value || '').trim();
+    }
+
+    function detectUrgentSymptoms(summaryText) {
+        const lower = summaryText.toLowerCase();
+        const patterns = [
+            'severe chest pain',
+            'difficulty breathing',
+            'shortness of breath',
+            'unconscious',
+            'severe bleeding',
+            'heavy bleeding',
+            'chest pain and trouble breathing',
+            'trouble breathing'
+        ];
+
+        return patterns.filter(pattern => lower.includes(pattern));
+    }
+
+    function buildSymptomSummary() {
+        const symptoms = normalizeSymptomText(symptomInput.value);
+        const duration = symptomDuration.value ? symptomDuration.options[symptomDuration.selectedIndex].text : 'Not specified';
+        const severityInput = document.querySelector('input[name="symptom-severity"]:checked');
+        const severity = severityInput ? severityInput.value : 'Not specified';
+        const context = normalizeSymptomText(document.getElementById('symptom-context').value);
+
+        const parts = [
+            symptoms ? `Symptoms: ${symptoms}` : 'Symptoms: Not provided',
+            `Duration: ${duration}`,
+            `Severity: ${severity}`,
+            context ? `Additional context: ${context}` : 'Additional context: Not provided'
+        ];
+
+        const summaryText = parts.join('\n');
+        return {
+            symptoms,
+            duration,
+            severity,
+            context,
+            summaryText,
+            flaggedReasons: detectUrgentSymptoms(summaryText)
+        };
+    }
+
+    function resetSymptomForm() {
+        symptomForm.reset();
+        symptomResult.classList.add('hidden');
+        symptomUrgentWarning.classList.add('hidden');
+        symptomSummaryText.innerHTML = '';
+    }
+
+    function renderSymptomSummary() {
+        const summary = buildSymptomSummary();
+
+        if (!summary.symptoms) {
+            showToast('Please describe your symptoms before submitting.');
+            return;
+        }
+
+        const warningVisible = summary.flaggedReasons.length > 0;
+        symptomUrgentWarning.classList.toggle('hidden', !warningVisible);
+
+        const summaryHtml = `
+            <ul>
+                <li><strong>Symptoms:</strong> ${summary.symptoms}</li>
+                <li><strong>Duration:</strong> ${summary.duration}</li>
+                <li><strong>Severity:</strong> ${summary.severity}</li>
+                <li><strong>Additional context:</strong> ${summary.context || 'Not provided'}</li>
+            </ul>
+            <p class="informational-note">This is an informational summary only and is not a diagnosis.</p>
+        `;
+
+        symptomSummaryText.innerHTML = summaryHtml;
+        symptomResult.classList.remove('hidden');
+
+        if (warningVisible) {
+            const reasons = summary.flaggedReasons.map(reason => `<li>${reason}</li>`).join('');
+            symptomUrgentWarning.innerHTML = `
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <strong>Urgent warning</strong>
+                    <p>Potential emergency symptoms were detected: ${summary.flaggedReasons[0]}.</p>
+                    <ul>${reasons}</ul>
+                    <p>Seek immediate professional or emergency medical care and do not rely on this app as a substitute for urgent care.</p>
+                </div>
+            `;
+            symptomUrgentWarning.classList.remove('hidden');
+        } else {
+            symptomUrgentWarning.innerHTML = `
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <strong>Urgent warning</strong>
+                    <p>Some symptoms may indicate a medical emergency. Please seek immediate professional or emergency medical care without delay.</p>
+                </div>
+            `;
+            symptomUrgentWarning.classList.add('hidden');
+        }
+    }
+
+    if (symptomForm) {
+        symptomForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            renderSymptomSummary();
+        });
+    }
+
+    if (symptomResetBtn) {
+        symptomResetBtn.addEventListener('click', resetSymptomForm);
+    }
+
+    if (symptomToAssistantBtn) {
+        symptomToAssistantBtn.addEventListener('click', () => {
+            const summary = buildSymptomSummary();
+            if (!summary.symptoms) {
+                showToast('Please add symptom details before sending to the AI Assistant.');
+                return;
+            }
+
+            const assistantPrompt = `Structured symptom check summary:\n- Symptoms: ${summary.symptoms}\n- Duration: ${summary.duration}\n- Severity: ${summary.severity}\n- Additional context: ${summary.context || 'Not provided'}\n\nI am looking for general informational guidance and not a diagnosis. Please respond with general safety-oriented information and suggest when to seek professional care.`;
+
+            setActiveView('assistant');
+            userInput.value = assistantPrompt;
+            setTimeout(() => {
+                handleSend();
+            }, 150);
+        });
+    }
+
+    function renderMedicineContent(results, query) {
+        if (!medicineSearchResults || !medicineSearchStatus) return;
+
+        medicineSearchResults.innerHTML = '';
+
+        if (!query || !query.trim()) {
+            medicineSearchStatus.textContent = 'Please enter a medicine name to search.';
+            return;
+        }
+
+        if (!results || results.length === 0) {
+            medicineSearchStatus.textContent = `No public medicine label results found for “${query}”.`;
+            return;
+        }
+
+        medicineSearchStatus.textContent = `Showing ${results.length} result(s) for “${query}”.`;
+
+        results.forEach((item) => {
+            const card = document.createElement('article');
+            card.className = 'medicine-result-card';
+
+            const brand = item.brand_name || 'Not available';
+            const generic = item.generic_name || 'Not available';
+            const active = item.active_ingredients || 'Not available';
+            const purpose = item.purpose || 'Not available';
+            const warnings = item.warnings || 'Not available';
+            const adverse = item.adverse_reactions || 'Not available';
+            const manufacturer = item.manufacturer_name || 'Not available';
+
+            card.innerHTML = `
+                <div class="medicine-card-header">
+                    <h3>${brand}</h3>
+                    <div class="medicine-meta">
+                        <span class="medicine-pill">Brand</span>
+                        <span class="medicine-pill">${manufacturer}</span>
+                    </div>
+                </div>
+                <div class="medicine-info-grid">
+                    <div class="medicine-info-box">
+                        <strong>Generic name</strong>
+                        <span>${generic}</span>
+                    </div>
+                    <div class="medicine-info-box">
+                        <strong>Active ingredients</strong>
+                        <span>${active}</span>
+                    </div>
+                    <div class="medicine-info-box">
+                        <strong>Purpose / indication</strong>
+                        <p>${purpose}</p>
+                    </div>
+                    <div class="medicine-info-box">
+                        <strong>Warnings</strong>
+                        <p>${warnings}</p>
+                    </div>
+                    <div class="medicine-info-box">
+                        <strong>Adverse reactions</strong>
+                        <p>${adverse}</p>
+                    </div>
+                    <div class="medicine-info-box">
+                        <strong>Manufacturer</strong>
+                        <span>${manufacturer}</span>
+                    </div>
+                </div>
+            `;
+            medicineSearchResults.appendChild(card);
+        });
+    }
+
+    async function searchMedicine() {
+        if (!medicineSearchInput || !medicineSearchStatus || !medicineSearchResults) return;
+
+        const query = medicineSearchInput.value.trim();
+
+        if (!query) {
+            medicineSearchStatus.textContent = 'Please enter a medicine name to search.';
+            medicineSearchResults.innerHTML = '';
+            return;
+        }
+
+        medicineSearchStatus.textContent = 'Loading medicine information...';
+        medicineSearchResults.innerHTML = '<div class="medicine-result-card"><p>Loading...</p></div>';
+
+        try {
+            const response = await fetch(`/api/medicineSearch?query=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Medicine lookup failed.');
+            }
+
+            renderMedicineContent(data.results || [], query);
+            addLocalHistory('medicine', {
+                query: query,
+                summary: `Medicine search: ${query} (${(data.results || []).length} result${(data.results || []).length === 1 ? '' : 's'})`,
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            medicineSearchStatus.textContent = error.message || 'Unable to load medicine information.';
+            medicineSearchResults.innerHTML = '<div class="medicine-result-card"><p>We could not fetch medicine data right now. Please try again.</p></div>';
+        }
+    }
+
+    if (medicineSearchForm) {
+        medicineSearchForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            searchMedicine();
+        });
+    }
+
+    function getLocalHistory() {
+        try {
+            const raw = localStorage.getItem(MEDIQ_HISTORY_KEY);
+            if (!raw) return { chat: [], medicine: [], tools: [] };
+            const parsed = JSON.parse(raw);
+            return {
+                chat: Array.isArray(parsed.chat) ? parsed.chat : [],
+                medicine: Array.isArray(parsed.medicine) ? parsed.medicine : [],
+                tools: Array.isArray(parsed.tools) ? parsed.tools : []
+            };
+        } catch (error) {
+            console.warn('History storage unreadable, resetting local data.', error);
+            return { chat: [], medicine: [], tools: [] };
+        }
+    }
+
+    function saveLocalHistory(data) {
+        try {
+            localStorage.setItem(MEDIQ_HISTORY_KEY, JSON.stringify(data));
+        } catch (error) {
+            console.warn('Unable to write history to localStorage.', error);
+        }
+    }
+
+    function addLocalHistory(type, item) {
+        const history = getLocalHistory();
+        const bucket = history[type] || [];
+        bucket.unshift({
+            ...item,
+            timestamp: item.timestamp || new Date().toISOString()
+        });
+        while (bucket.length > 12) bucket.pop();
+        history[type] = bucket;
+        saveLocalHistory(history);
+        renderHistoryList();
+    }
+
+    function renderHistoryList() {
+        if (!historyList) return;
+
+        const history = getLocalHistory();
+        const allEntries = [
+            ...history.chat.map(item => ({ ...item, kind: 'chat' })),
+            ...history.medicine.map(item => ({ ...item, kind: 'medicine' })),
+            ...history.tools.map(item => ({ ...item, kind: 'tool' }))
+        ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 12);
+
+        if (allEntries.length === 0) {
+            historyList.innerHTML = '<div class="history-item empty-history">No local history yet. Search medicines or use the health tools to create entries.</div>';
+            return;
+        }
+
+        historyList.innerHTML = allEntries.map((entry) => {
+            const label = entry.kind === 'chat' ? 'AI conversation' : entry.kind === 'medicine' ? 'Medicine search' : 'Health tool';
+            const time = new Date(entry.timestamp).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+            const summaryText = entry.summary || entry.query || entry.title || 'Local record';
+            return `
+                <div class="history-item">
+                    <div class="history-item-head">
+                        <span class="history-tag">${label}</span>
+                        <span class="history-time">${time}</span>
+                    </div>
+                    <div class="history-text">${summaryText}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', () => {
+            saveLocalHistory({ chat: [], medicine: [], tools: [] });
+            renderHistoryList();
+            showToast('Local history cleared.');
+        });
+    }
+
+    function calculateBmi(heightCm, weightKg) {
+        const heightM = heightCm / 100;
+        const bmi = weightKg / (heightM * heightM);
+        let category = 'Underweight';
+        if (bmi >= 18.5 && bmi < 25) category = 'Normal weight';
+        else if (bmi >= 25 && bmi < 30) category = 'Overweight';
+        else if (bmi >= 30) category = 'Obesity';
+        return { bmi, category };
+    }
+
+    if (bmiCalcBtn) {
+        bmiCalcBtn.addEventListener('click', () => {
+            const height = Number(bmiHeight.value);
+            const weight = Number(bmiWeight.value);
+
+            if (!height || !weight || height <= 0 || weight <= 0) {
+                bmiResult.textContent = 'Please enter valid height and weight values.';
+                return;
+            }
+
+            const { bmi, category } = calculateBmi(height, weight);
+            const resultText = `BMI: ${bmi.toFixed(1)} - ${category}`;
+            bmiResult.textContent = resultText;
+            addLocalHistory('tools', { title: 'BMI calculation', summary: resultText, timestamp: new Date().toISOString() });
+        });
+    }
+
+    function calculateBmr() {
+        const formula = bmrFormula.value;
+        const age = Number(bmrAge.value);
+        const height = Number(bmrHeight.value);
+        const weight = Number(bmrWeight.value);
+        const sex = bmrSex.value;
+
+        if (!age || !height || !weight || age <= 0 || height <= 0 || weight <= 0) {
+            return null;
+        }
+
+        let bmr = 0;
+        if (formula === 'mifflin') {
+            bmr = (10 * weight) + (6.25 * height) - (5 * age) + (sex === 'male' ? 5 : -161);
+        } else {
+            bmr = sex === 'male'
+                ? 66.47 + (13.75 * weight) + (5.003 * height) - (6.755 * age)
+                : 655.1 + (9.563 * weight) + (1.85 * height) - (4.676 * age);
+        }
+
+        return { formulaName: formula === 'mifflin' ? 'Mifflin-St Jeor' : 'Harris-Benedict', bmr };
+    }
+
+    if (bmrCalcBtn) {
+        bmrCalcBtn.addEventListener('click', () => {
+            const result = calculateBmr();
+            if (!result) {
+                bmrResult.textContent = 'Please enter valid values for age, height, and weight.';
+                return;
+            }
+
+            bmrResult.textContent = `${result.formulaName}: ${result.bmr.toFixed(0)} kcal/day estimated baseline burn.`;
+            addLocalHistory('tools', { title: 'BMR calculation', summary: `${result.formulaName}: ${result.bmr.toFixed(0)} kcal/day`, timestamp: new Date().toISOString() });
+        });
+    }
+
+    if (bmrFormula) {
+        bmrFormula.addEventListener('change', () => {
+            const label = bmrFormula.value === 'mifflin' ? 'Mifflin-St Jeor' : 'Harris-Benedict';
+            bmrResult.textContent = `Formula: ${label}. Enter values to estimate BMR.`;
+        });
+    }
+
+    if (hrCalcBtn) {
+        hrCalcBtn.addEventListener('click', () => {
+            const age = Number(hrAge.value);
+            if (!age || age <= 0) {
+                hrResult.textContent = 'Please enter a valid age to estimate heart rate zones.';
+                return;
+            }
+
+            const maxHr = 220 - age;
+            const zones = [
+                { label: 'Very light', range: '50-60%', value: `${Math.round(maxHr * 0.5)}-${Math.round(maxHr * 0.6)} bpm` },
+                { label: 'Light', range: '60-70%', value: `${Math.round(maxHr * 0.6)}-${Math.round(maxHr * 0.7)} bpm` },
+                { label: 'Moderate', range: '70-80%', value: `${Math.round(maxHr * 0.7)}-${Math.round(maxHr * 0.8)} bpm` },
+                { label: 'Hard', range: '80-90%', value: `${Math.round(maxHr * 0.8)}-${Math.round(maxHr * 0.9)} bpm` }
+            ];
+
+            hrResult.innerHTML = `
+                <strong>Estimated max HR:</strong> ${maxHr} bpm<br>
+                <strong>Training zones (estimates):</strong><br>
+                ${zones.map(zone => `${zone.label} (${zone.range}): ${zone.value}`).join('<br>')}
+            `;
+            addLocalHistory('tools', { title: 'Heart rate zone estimate', summary: `Age ${age}: max HR ${maxHr} bpm`, timestamp: new Date().toISOString() });
+        });
+    }
+
+    renderHistoryList();
 
     // Onboarding Modal Elements
     const onboardingModal = document.getElementById('onboarding-modal');
@@ -70,20 +544,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         id: currentUser.uid,
-                        name: currentUser.displayName,
+                        name: currentUser.displayName || currentUser.email?.split('@')[0] || 'Google User',
                         email: currentUser.email,
                         age: age,
                         gender: gender
                     })
                 });
-                
+
+                const result = await response.json().catch(() => ({}));
+
                 if (response.ok) {
                     displayUserAge.textContent = age;
                     displayUserGender.textContent = gender;
                     onboardingModal.classList.remove("active");
                     showToast("Profile updated successfully!");
                 } else {
-                    showToast("Failed to save profile.");
+                    showToast(result.error || "Failed to save profile.");
                 }
             } catch (e) {
                 console.error("Error saving user data", e);
@@ -476,37 +952,41 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    themeToggleBtn.addEventListener("click", () => {
-        isLightMode = !isLightMode;
-        if (isLightMode) {
-            document.body.classList.add("light-theme");
-            themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-        } else {
-            document.body.classList.remove("light-theme");
-            themeToggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-        }
-    });
-
-    downloadPdfBtn.addEventListener("click", () => {
-        if (chatMessages.children.length === 0 || (chatMessages.children.length === 1 && emptyState)) {
-            showToast("The session is empty. Nothing to download!");
-            return;
-        }
-        showToast("Generating PDF... Please wait.");
-        const opt = {
-            margin: 10,
-            filename: 'Vitalis-AI-Diagnoses-Session.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(chatMessages).save().then(() => {
-            showToast("PDF downloaded successfully!");
-        }).catch((err) => {
-            console.error("PDF generation failed:", err);
-            showToast("Failed to generate PDF.");
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", () => {
+            isLightMode = !isLightMode;
+            if (isLightMode) {
+                document.body.classList.add("light-theme");
+                themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+            } else {
+                document.body.classList.remove("light-theme");
+                themeToggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+            }
         });
-    });
+    }
+
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener("click", () => {
+            if (chatMessages.children.length === 0 || (chatMessages.children.length === 1 && emptyState)) {
+                showToast("The session is empty. Nothing to download!");
+                return;
+            }
+            showToast("Generating PDF... Please wait.");
+            const opt = {
+                margin: 10,
+                filename: 'Mediq-Diagnoses-Session.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(chatMessages).save().then(() => {
+                showToast("PDF downloaded successfully!");
+            }).catch((err) => {
+                console.error("PDF generation failed:", err);
+                showToast("Failed to generate PDF.");
+            });
+        });
+    }
 
     function addMessage(text, sender, isHTML = false, imageSrc = null) {
         return new Promise((resolve) => {
@@ -535,6 +1015,9 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // 3. Convert literal newlines to HTML breaks so the UI formats lists properly
             parsedText = parsedText.replace(/\n/g, "<br>");
+            if (sender === "bot" && isHTML) {
+                parsedText = sanitizeAiHtml(parsedText);
+            }
             // ----------------------------
 
             if (sender === "bot") {
@@ -609,6 +1092,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const indicatorDiv = document.createElement("div");
         indicatorDiv.classList.add("message", "bot-msg", "typing-indicator");
         indicatorDiv.id = "typing";
+        indicatorDiv.setAttribute("role", "status");
+        indicatorDiv.setAttribute("aria-label", "Mediq is preparing a response");
 
         const loaderContainer = document.createElement("div");
         loaderContainer.classList.add("dna-loader");
@@ -657,45 +1142,53 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    micBtn.addEventListener("click", () => {
-        if (!recognition) {
-            showToast("Voice input is not supported in this browser.");
-            return;
-        }
-        if (micBtn.classList.contains("recording")) {
-            recognition.stop();
-        } else {
-            recognition.start();
-            micBtn.classList.add("recording");
-            showToast("Listening...");
-        }
-    });
+    if (micBtn) {
+        micBtn.addEventListener("click", () => {
+            if (!recognition) {
+                showToast("Voice input is not supported in this browser.");
+                return;
+            }
+            if (micBtn.classList.contains("recording")) {
+                recognition.stop();
+            } else {
+                recognition.start();
+                micBtn.classList.add("recording");
+                showToast("Listening...");
+            }
+        });
+    }
 
-    uploadBtn.addEventListener("click", () => { fileInput.click(); });
+    if (uploadBtn && fileInput) {
+        uploadBtn.addEventListener("click", () => { fileInput.click(); });
+    }
 
-    fileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            showToast("Please upload an image file (PNG, JPG, WEBP).");
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            currentBase64Image = event.target.result;
-            currentMimeType = file.type;
-            imagePreview.src = currentBase64Image;
-            previewContainer.style.display = "flex";
-        };
-        reader.readAsDataURL(file);
-    });
+    if (fileInput) {
+        fileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                showToast("Please upload an image file (PNG, JPG, WEBP).");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                currentBase64Image = event.target.result;
+                currentMimeType = file.type;
+                imagePreview.src = currentBase64Image;
+                previewContainer.style.display = "flex";
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
-    removeImageBtn.addEventListener("click", () => {
-        currentBase64Image = null;
-        currentMimeType = null;
-        previewContainer.style.display = "none";
-        fileInput.value = "";
-    });
+    if (removeImageBtn && previewContainer && fileInput) {
+        removeImageBtn.addEventListener("click", () => {
+            currentBase64Image = null;
+            currentMimeType = null;
+            previewContainer.style.display = "none";
+            fileInput.value = "";
+        });
+    }
 
     // --- CUSTOM LLM API INTEGRATION ---
     async function fetchAiDiagnosis(symptomsText, base64ImageRaw, mimeType, signal, history, onProgress) {
@@ -724,11 +1217,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify(payload),
                 signal: signal
             }).then(async res => {
+                const contentType = res.headers.get("content-type") || "";
+                const data = contentType.includes("application/json") ? await res.json() : null;
                 if (!res.ok) {
-                    throw new Error("API responded with status: " + res.status);
+                    throw new Error(data?.error || "Mediq could not complete that request.");
                 }
                 // Support both streaming text chunks and standard JSON responses
-                const contentType = res.headers.get("content-type") || "";
                 if (contentType.includes("text/plain") || contentType.includes("text/event-stream")) {
                     const reader = res.body.getReader();
                     const decoder = new TextDecoder("utf-8");
@@ -742,7 +1236,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     return resultText.trim();
                 } else {
-                    const data = await res.json();
                     let mainText = data.output || data.response || "";
                     
                     // Separate RAG Thinking (Top of Chat) and Clinical Triage (End of Chat)
@@ -762,7 +1255,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             ragThinkingHTML = `
                                 <details class="vitalis-rag-thinking" style="cursor: pointer;">
                                     <summary style="font-weight: 600; color: #A78BFA; list-style: none; display: flex; align-items: center; justify-content: space-between;">
-                                        <span style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-brain" style="color: #A78BFA;"></i> Vitalis AI Clinical Reasoning & RAG Retrieval (${data.rag_context.length} Cases Grounded)</span>
+                                        <span style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-brain" style="color: #A78BFA;"></i> Mediq Clinical Reasoning & RAG Retrieval (${data.rag_context.length} Cases Grounded)</span>
                                         <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; opacity: 0.8;"></i>
                                     </summary>
                                     <div style="margin-top: 8px; font-size: 0.76rem; color: var(--text-color); opacity: 0.85; border-top: 1px solid rgba(139, 92, 246, 0.2); padding-top: 6px;">
@@ -795,8 +1288,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }).catch(e => {
                 if (e.name === 'AbortError') return null;
-                console.error("Custom AI API Error:", e);
-                return `<span style='color: #F87171;'><i class='fa-solid fa-triangle-exclamation'></i> Connection Error: ${e.message}</span>`;
+                throw e;
             });
 
             const responseText = await Promise.race([apiPromise, abortPromise]);
@@ -811,9 +1303,23 @@ document.addEventListener("DOMContentLoaded", () => {
             if (signal && signal.aborted) {
                 return null;
             }
-            console.error("Critical error in fetchAiDiagnosis:", error);
-            return `<span style='color: #F87171;'><i class='fa-solid fa-triangle-exclamation'></i> Critical Connection Error. Please verify your connectivity.</span>`;
+            throw error;
         }
+    }
+
+    function sanitizeAiHtml(value) {
+        const template = document.createElement('template');
+        template.innerHTML = String(value || '');
+        template.content.querySelectorAll('script, style, iframe, object, embed, form').forEach(node => node.remove());
+        template.content.querySelectorAll('*').forEach(node => {
+            [...node.attributes].forEach(attribute => {
+                if (attribute.name.toLowerCase().startsWith('on') ||
+                    ((attribute.name === 'href' || attribute.name === 'src') && /^\s*javascript:/i.test(attribute.value))) {
+                    node.removeAttribute(attribute.name);
+                }
+            });
+        });
+        return template.innerHTML;
     }
 
     function resetInputState() {
@@ -821,6 +1327,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentAbortController = null;
         sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i>';
         sendBtn.title = "Send Message";
+        sendBtn.disabled = false;
         sendBtn.classList.remove("stop-btn");
         
         userInput.disabled = false;
@@ -867,9 +1374,9 @@ document.addEventListener("DOMContentLoaded", () => {
         uploadBtn.disabled = true;
         micBtn.disabled = true;
 
-        sendBtn.innerHTML = '<i class="fa-solid fa-circle-stop"></i>';
-        sendBtn.title = "Stop Generation";
-        sendBtn.classList.add("stop-btn");
+        sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        sendBtn.title = "Mediq is preparing a response";
+        sendBtn.disabled = true;
 
         addTypingIndicator();
         let isFirstChunk = true;
@@ -886,7 +1393,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 if (liveMsgDiv) {
                     let cleanText = currentText.replace(/\[CHIP:\s*(.*?)\]/g, "").trim();
-                    liveMsgDiv.innerHTML = cleanText || "...";
+                    liveMsgDiv.innerHTML = sanitizeAiHtml(cleanText || "...");
                     scrollToBottom();
                 }
             });
@@ -907,7 +1414,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 responseHTML = responseHTML.replace(chipRegex, "").trim();
 
                 if (liveMsgDiv) {
-                    liveMsgDiv.innerHTML = responseHTML;
+                    liveMsgDiv.innerHTML = sanitizeAiHtml(responseHTML);
                 } else {
                     await addMessage(responseHTML, "bot", true);
                 }
@@ -921,36 +1428,47 @@ document.addEventListener("DOMContentLoaded", () => {
                     }).catch(e => console.error("Error saving message", e));
                 }
 
+                addLocalHistory('chat', {
+                    summary: `${text.slice(0, 80)}${text.length > 80 ? '...' : ''} → ${String(responseHTML).replace(/<[^>]*>/g, '').slice(0, 80)}`,
+                    timestamp: new Date().toISOString()
+                });
+
                 renderChips(chips);
             }
         } catch (error) {
             console.error("Critical error in handleSend:", error);
             removeTypingIndicator();
-            await addMessage("A critical application error occurred. Please try again.", "bot", false);
+            await addMessage(error.message || "Mediq could not complete that request. Please try again shortly.", "bot", false);
         } finally {
             // This will ALWAYS run, guaranteeing the UI unfreezes!
             resetInputState();
         }
     }
 
-    sendBtn.addEventListener("click", () => {
-        if (isGenerating) {
-            if (currentAbortController) {
-                currentAbortController.abort();
+    if (sendBtn) {
+        sendBtn.addEventListener("click", () => {
+            if (isGenerating) {
+                if (currentAbortController) {
+                    currentAbortController.abort();
+                }
+                return; // Return instantly, let handleSend clean up asynchronously
             }
-            return; // Return instantly, let handleSend clean up asynchronously
-        }
-        handleSend();
-    });
-
-    userInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter" && !userInput.disabled && !isGenerating) {
             handleSend();
-        }
-    });
+        });
+    }
 
-    clearBtn.addEventListener("click", () => {
-        startNewSession();
-        showToast("Session cleared successfully.");
-    });
+    if (userInput) {
+        userInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter" && !userInput.disabled && !isGenerating) {
+                handleSend();
+            }
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+            startNewSession();
+            showToast("Session cleared successfully.");
+        });
+    }
 });

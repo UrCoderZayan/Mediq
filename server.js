@@ -12,6 +12,7 @@ const apiRoutes = {
   '/api/renameChat': require('./api/renameChat'),
   '/api/saveUser': require('./api/saveUser'),
   '/api/getUser': require('./api/getUser'),
+  '/api/medicineSearch': require('./api/medicineSearch'),
 };
 
 const server = http.createServer(async (req, res) => {
@@ -117,7 +118,7 @@ const server = http.createServer(async (req, res) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`\n=================================================`);
-  console.log(`🚀 Vitalis AI Server Running Locally!`);
+  console.log(`🚀 Mediq Server Running Locally!`);
   console.log(`🌐 Open in your browser: http://localhost:${PORT}`);
   console.log(`=================================================\n`);
 });
