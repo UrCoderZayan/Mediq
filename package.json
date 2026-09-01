@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "node -e \"console.log('No build step required for this Vercel deployment')\""
   },
   "dependencies": {
     "dotenv": "^16.4.5",

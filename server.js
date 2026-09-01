@@ -115,10 +115,14 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`\n=================================================`);
-  console.log(`🚀 Mediq Server Running Locally!`);
-  console.log(`🌐 Open in your browser: http://localhost:${PORT}`);
-  console.log(`=================================================\n`);
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    console.log(`\n=================================================`);
+    console.log(`🚀 Mediq Server Running Locally!`);
+    console.log(`🌐 Open in your browser: http://localhost:${PORT}`);
+    console.log(`=================================================\n`);
+  });
+}
+
+module.exports = server;
