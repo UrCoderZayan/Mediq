@@ -1,16 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
     
-    // --- AUTH & LOGIN LOGIC ---
-    const loginScreen = document.getElementById('login-screen');
-    const appWrapper = document.getElementById('app-wrapper');
-    const googleSigninBtn = document.getElementById('google-signin-btn');
-    const userProfileCard = document.getElementById('user-profile-card');
-    const displayUserName = document.getElementById('display-user-name');
-    const displayUserEmail = document.getElementById('display-user-email');
-    const displayUserPhoto = document.getElementById('display-user-photo');
-    const displayUserAge = document.getElementById('display-user-age');
-    const displayUserGender = document.getElementById('display-user-gender');
-    const googleSignoutBtn = document.getElementById('google-signout-btn');
     const toast = document.getElementById("toast");
     const navButtons = document.querySelectorAll('.nav-btn');
     const viewPanes = document.querySelectorAll('.view-pane');
@@ -487,316 +476,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderHistoryList();
 
-    // Onboarding Modal Elements
-    const onboardingModal = document.getElementById('onboarding-modal');
-    const onboardingAge = document.getElementById('onboarding-age');
-    const onboardingGender = document.getElementById('onboarding-gender');
-    const saveOnboardingBtn = document.getElementById('save-onboarding-btn');
-
-    let currentUser = null;
     let currentChatHistory = [];
     let currentSessionId = crypto.randomUUID();
-    
-    // UI Elements for Sessions
-    const sessionList = document.getElementById('session-list');
     const newChatBtn = document.getElementById('new-chat-btn');
 
     function showToast(message) {
         toast.textContent = message;
         toast.classList.add("show");
         setTimeout(() => toast.classList.remove("show"), 3000);
-    }
-
-    function logFirebaseAuthError(error, context) {
-        console.error(`[Firebase Auth] ${context}`, {
-            code: error?.code || 'unknown',
-            name: error?.name || 'FirebaseError',
-            message: error?.message || 'No error message provided',
-            origin: window.location.origin,
-            hostname: window.location.hostname
-        });
-    }
-
-    async function checkAndShowOnboarding(user) {
-        // Fetch age/gender from NeonDB via our Vercel API
-        try {
-            const response = await fetch(`/api/getUser?id=${user.uid}`);
-            if (response.ok) {
-                const data = await response.json();
-                if (data.age && data.gender) {
-                    displayUserAge.textContent = data.age;
-                    displayUserGender.textContent = data.gender;
-                    return false; // No onboarding needed
-                }
-            }
-        } catch (e) {
-            console.error("Error fetching user data", e);
-        }
-        
-        // Show modal if missing data
-        onboardingModal.classList.add("active");
-        return true;
-    }
-
-    saveOnboardingBtn.addEventListener("click", async () => {
-        const age = onboardingAge.value;
-        const gender = onboardingGender.value;
-
-        if (!age || !gender) {
-            showToast("Please fill in both Age and Gender.");
-            return;
-        }
-
-        if (currentUser) {
-            try {
-                const response = await fetch('/api/saveUser', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: currentUser.uid,
-                        name: currentUser.displayName || currentUser.email?.split('@')[0] || 'Google User',
-                        email: currentUser.email,
-                        age: age,
-                        gender: gender
-                    })
-                });
-
-                const result = await response.json().catch(() => ({}));
-
-                if (response.ok) {
-                    displayUserAge.textContent = age;
-                    displayUserGender.textContent = gender;
-                    onboardingModal.classList.remove("active");
-                    showToast("Profile updated successfully!");
-                } else {
-                    showToast(result.error || "Failed to save profile.");
-                }
-            } catch (e) {
-                console.error("Error saving user data", e);
-                showToast("Connection error while saving.");
-            }
-        }
-    });
-
-    // Function to transition to the main app dashboard
-    async function showAppDashboard(user) {
-        currentUser = user;
-        // Fade out login screen
-        loginScreen.style.opacity = '0';
-        
-        setTimeout(() => {
-            loginScreen.style.display = 'none';
-            // Trigger the app wrapper entrance animation
-            appWrapper.classList.add('loaded');
-        }, 500);
-
-        // Populate User Details
-        if (user) {
-            displayUserName.textContent = user.displayName || "User";
-            displayUserEmail.textContent = user.email || "";
-            if (user.photoURL) {
-                displayUserPhoto.src = user.photoURL;
-            }
-            userProfileCard.style.display = 'block';
-            
-            checkAndShowOnboarding(user);
-            loadChatHistory(user);
-        }
-    }
-
-    // Wait for Firebase to initialize then check auth state
-    const checkFirebaseInterval = setInterval(() => {
-        if (window.firebaseAuth) {
-            clearInterval(checkFirebaseInterval);
-
-            window.firebaseAuth.getRedirectResult(window.firebaseAuth.auth).catch((error) => {
-                logFirebaseAuthError(error, 'Redirect sign-in failed');
-            });
-            
-            window.firebaseAuth.onAuthStateChanged(window.firebaseAuth.auth, (user) => {
-                if (user) {
-                    showAppDashboard(user);
-                } else {
-                    loginScreen.style.display = 'flex';
-                }
-            });
-        }
-    }, 50);
-
-    // Manual Sign In Button Click
-    if (googleSigninBtn) {
-        googleSigninBtn.addEventListener('click', async () => {
-            if (!window.firebaseAuth) {
-                showToast("Authentication service is not loaded yet.");
-                return;
-            }
-            try {
-                await window.firebaseAuth.signInWithPopup(window.firebaseAuth.auth, window.firebaseAuth.provider);
-                // onAuthStateChanged will handle the dashboard transition
-            } catch (error) {
-                logFirebaseAuthError(error, 'Google popup sign-in failed');
-
-                if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
-                    try {
-                        await window.firebaseAuth.signInWithRedirect(window.firebaseAuth.auth, window.firebaseAuth.provider);
-                        return;
-                    } catch (redirectError) {
-                        logFirebaseAuthError(redirectError, 'Google redirect sign-in failed');
-                    }
-                }
-
-                if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
-                    showToast("Google sign-in was cancelled.");
-                } else {
-                    showToast("Google sign-in failed. Check the browser console for details.");
-                }
-            }
-        });
-    }
-
-    // Manual Sign Out Button Click
-    if (googleSignoutBtn) {
-        googleSignoutBtn.addEventListener('click', async () => {
-            if (window.firebaseAuth) {
-                await window.firebaseAuth.signOut(window.firebaseAuth.auth);
-            }
-            window.location.reload(); 
-        });
-    }
-
-    async function loadChatHistory(user) {
-        try {
-            const response = await fetch(`/api/getHistory?user_id=${user.uid}`);
-            if (response.ok) {
-                const sessions = await response.json();
-                renderSessionList(sessions);
-            }
-        } catch (e) {
-            console.error("Error loading sessions", e);
-        }
-    }
-
-    function renderSessionList(sessions) {
-        if (!sessionList) return;
-        sessionList.innerHTML = "";
-        if (sessions.length === 0) {
-            sessionList.innerHTML = "<p class='text-sm' style='padding: 10px; text-align: center; color: var(--text-muted);'>No past consultations.</p>";
-            return;
-        }
-
-        sessions.forEach(session => {
-            const item = document.createElement("div");
-            item.className = "session-item";
-            if (session.session_id === currentSessionId) item.classList.add("active");
-            
-            const date = new Date(session.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-            const title = session.title || "New Consultation";
-            
-            item.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px;">
-                        <div class="session-title">${title}</div>
-                        <div class="session-date">${date}</div>
-                    </div>
-                    <div class="session-actions" onclick="event.stopPropagation();">
-                        <button class="session-action-btn edit-btn" title="Rename Session"><i class="fa-solid fa-pen"></i></button>
-                        <button class="session-action-btn delete-btn" title="Delete Session"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-            
-            // Delete Logic
-            const deleteBtn = item.querySelector('.delete-btn');
-            deleteBtn.addEventListener("click", async (e) => {
-                e.stopPropagation();
-                if (!confirm("Are you sure you want to delete this chat session?")) return;
-                try {
-                    await fetch('/api/deleteChat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_id: currentUser.uid, session_id: session.session_id })
-                    });
-                    if (session.session_id === currentSessionId) startNewSession();
-                    loadChatHistory(currentUser);
-                } catch (err) { console.error(err); }
-            });
-
-            // Rename Logic
-            const editBtn = item.querySelector('.edit-btn');
-            const titleDiv = item.querySelector('.session-title');
-            editBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const input = document.createElement("input");
-                input.className = "session-title-input";
-                input.value = title;
-                titleDiv.replaceWith(input);
-                input.focus();
-
-                const saveRename = async () => {
-                    const newName = input.value.trim();
-                    if (newName && newName !== title) {
-                        try {
-                            await fetch('/api/renameChat', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ user_id: currentUser.uid, session_id: session.session_id, session_name: newName })
-                            });
-                        } catch (err) { console.error(err); }
-                    }
-                    loadChatHistory(currentUser);
-                };
-
-                input.addEventListener("blur", saveRename);
-                input.addEventListener("keypress", (ev) => {
-                    if (ev.key === "Enter") {
-                        ev.preventDefault();
-                        input.blur();
-                    }
-                });
-                input.addEventListener("click", ev => ev.stopPropagation());
-            });
-
-            item.addEventListener("click", () => {
-                document.querySelectorAll(".session-item").forEach(el => el.classList.remove("active"));
-                item.classList.add("active");
-                fetchSessionMessages(session.session_id);
-            });
-            
-            sessionList.appendChild(item);
-        });
-    }
-
-    async function fetchSessionMessages(sessionId) {
-        if (!currentUser) return;
-        currentSessionId = sessionId;
-        currentChatHistory = [];
-        chatMessages.innerHTML = "";
-        if (emptyState) emptyState.style.display = "none";
-        
-        try {
-            const response = await fetch(`/api/getHistory?user_id=${currentUser.uid}&session_id=${sessionId}`);
-            if (response.ok) {
-                const messages = await response.json();
-                for (const msg of messages) {
-                    currentChatHistory.push({ role: msg.sender, content: msg.text });
-                    
-                    const msgDiv = document.createElement("div");
-                    msgDiv.classList.add("message");
-                    msgDiv.classList.add(msg.sender === "user" ? "user-msg" : "bot-msg");
-                    
-                    let safeText = String(msg.text || "");
-                    safeText = safeText.replace(/\\n/g, "\n"); 
-                    let parsedText = safeText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-                    parsedText = parsedText.replace(/\n/g, "<br>");
-                    
-                    msgDiv.innerHTML = parsedText;
-                    chatMessages.appendChild(msgDiv);
-                }
-                scrollToBottom();
-            }
-        } catch (e) {
-            console.error("Error loading session messages", e);
-        }
     }
 
     if (newChatBtn) {
@@ -813,8 +500,6 @@ document.addEventListener("DOMContentLoaded", () => {
         currentChatHistory = [];
         chatMessages.innerHTML = "";
         
-        document.querySelectorAll(".session-item").forEach(el => el.classList.remove("active"));
-
         if (emptyState) {
             chatMessages.appendChild(emptyState);
             emptyState.style.display = "flex";
@@ -1381,16 +1066,6 @@ document.addEventListener("DOMContentLoaded", () => {
         addMessage(text, "user", false, imageToDisplay);
         
         currentChatHistory.push({ role: "user", content: text });
-        if (currentUser) {
-            const isFirstMessage = currentChatHistory.length === 1;
-            fetch('/api/saveMessage', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: currentUser.uid, session_id: currentSessionId, sender: 'user', text: text })
-            }).then(() => {
-                if (isFirstMessage) loadChatHistory(currentUser); // Refresh session list
-            }).catch(e => console.error("Error saving message", e));
-        }
 
         userInput.value = "";
         previewContainer.style.display = "none";
@@ -1448,13 +1123,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 
                 currentChatHistory.push({ role: "assistant", content: responseHTML });
-                if (currentUser) {
-                    fetch('/api/saveMessage', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_id: currentUser.uid, session_id: currentSessionId, sender: 'assistant', text: responseHTML })
-                    }).catch(e => console.error("Error saving message", e));
-                }
 
                 addLocalHistory('chat', {
                     summary: `${text.slice(0, 80)}${text.length > 80 ? '...' : ''} → ${String(responseHTML).replace(/<[^>]*>/g, '').slice(0, 80)}`,

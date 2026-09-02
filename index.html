@@ -13,50 +13,9 @@
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDJ4FrgCf8UGOARS3bxgffAzk6qwWufRgI",
-            authDomain: "vitalis-ai-90b46.firebaseapp.com",
-            projectId: "vitalis-ai-90b46",
-            storageBucket: "vitalis-ai-90b46.firebasestorage.app",
-            messagingSenderId: "959531836387",
-            appId: "1:959531836387:web:3f1d491df65d14c05776d6",
-            measurementId: "G-CWEDD4L64G"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
-        window.firebaseAuth = { auth, provider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut };
-    </script>
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="light-theme">
-
-    <!-- ═══════════════════════════════════════════════════════
-         LOGIN SCREEN
-    ═══════════════════════════════════════════════════════ -->
-    <div class="login-screen" id="login-screen" style="display: none;">
-        <div class="bg-canvas">
-            <div class="cellular-pattern"></div>
-            <div class="vignette"></div>
-        </div>
-        <div class="login-box">
-            <div class="login-logo-ring">
-                <i class="fa-solid fa-heart-pulse login-logo"></i>
-            </div>
-            <h2 class="login-title">Mediq</h2>
-            <p class="login-subtitle">Your modern health companion. Sign in to get started.</p>
-            <button class="login-btn" id="google-signin-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width:20px;height:20px;margin-right:10px;"> Sign in with Google
-            </button>
-        </div>
-    </div>
 
     <!-- ═══════════════════════════════════════════════════════
          ANIMATED BACKGROUND
@@ -123,7 +82,7 @@
                 <button id="theme-toggle" class="icon-btn" title="Toggle Theme"><i class="fa-solid fa-sun"></i></button>
                 <button id="download-pdf" class="icon-btn" title="Download PDF"><i class="fa-solid fa-file-pdf"></i></button>
 
-                <button id="info-panel-btn" class="icon-btn info-panel-btn" title="Toggle Info Panel"><i class="fa-solid fa-circle-user"></i></button>
+                <button id="info-panel-btn" class="icon-btn info-panel-btn" title="Toggle Info Panel"><i class="fa-solid fa-circle-info"></i></button>
             </div>
         </header>
 
@@ -147,11 +106,6 @@
                         <i class="fa-solid fa-plus"></i>
                         <span>New Consultation</span>
                     </button>
-
-                    <div class="history-section card" id="chat-history-card" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
-                        <h4><i class="fa-solid fa-clock-rotate-left"></i> Past Consultations</h4>
-                        <div id="session-list" style="display:flex;flex-direction:column;gap:6px;margin-top:10px;"></div>
-                    </div>
 
                     <div class="card emergency-card">
                         <h4><i class="fa-solid fa-phone-volume"></i> Emergency</h4>
@@ -527,30 +481,6 @@
                 </div>
                 <div class="panel-content sidebar-content">
 
-                    <!-- User profile card -->
-                    <div class="card profile-card" id="user-profile-card" style="display:none;">
-                        <div class="profile-row">
-                            <img id="display-user-photo" src="https://via.placeholder.com/40" alt="User Photo" class="profile-avatar" referrerpolicy="no-referrer">
-                            <div class="profile-info">
-                                <strong id="display-user-name">User Name</strong>
-                                <span id="display-user-email">user@example.com</span>
-                            </div>
-                        </div>
-                        <div class="bio-stat">
-                            <span class="bio-stat-label"><i class="fa-solid fa-calendar-days"></i> Age</span>
-                            <span class="bio-stat-value" id="display-user-age">—</span>
-                        </div>
-                        <div class="bio-stat">
-                            <span class="bio-stat-label"><i class="fa-solid fa-venus-mars"></i> Gender</span>
-                            <span class="bio-stat-value" id="display-user-gender" style="text-transform:capitalize;">—</span>
-                        </div>
-                        <button id="google-signout-btn" class="signout-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-                        </button>
-                    </div>
-
-
-
                     <!-- Daily tip -->
                     <div class="card tip-card">
                         <h4><i class="fa-solid fa-lightbulb"></i> Daily Tip</h4>
@@ -605,32 +535,6 @@
                     <span>Severe</span>
                 </div>
                 <button id="submit-pain-btn" class="quick-prompt-btn" style="justify-content:center;">Record Pain Level</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="onboarding-modal" class="modal-overlay">
-        <div class="modal-content text-center">
-            <h3><i class="fa-solid fa-user-plus"></i> Complete Your Profile</h3>
-            <p class="text-sm modal-subtitle">We need a few more details to personalize your health assistance.</p>
-            <div class="modal-form">
-                <div class="form-group">
-                    <label>Age</label>
-                    <input type="number" id="onboarding-age" class="form-input" placeholder="e.g. 28" min="1" max="120">
-                </div>
-                <div class="form-group">
-                    <label>Gender</label>
-                    <select id="onboarding-gender" class="form-input">
-                        <option value="" disabled selected>Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                        <option value="prefer_not_to_say">Prefer not to say</option>
-                    </select>
-                </div>
-                <button id="save-onboarding-btn" class="login-btn modal-submit-btn">
-                    <i class="fa-solid fa-floppy-disk"></i> Save Details
-                </button>
             </div>
         </div>
     </div>

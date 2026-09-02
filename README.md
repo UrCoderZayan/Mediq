@@ -45,9 +45,8 @@ Whether you are logging a minor headache using the interactive body map, uploadi
 
 | Feature | Description |
 | :--- | :--- |
-| 🔐 **Secure Authentication** | Google Sign-In powered by Firebase Authentication for seamless onboarding. |
-| 🗄️ **Persistent Data** | Saves user profiles and demographic data using NeonDB (Serverless PostgreSQL). |
-| 🗂️ **Session Management** | Start new consultations, view past history, and rename/delete previous chat sessions. |
+| 🌐 **Open Access** | Use every Mediq feature immediately without an account or sign-in. |
+| 🗂️ **Local History** | Keep recent assistant, medicine, and health-tool activity in this browser. |
 | 🧠 **Secure Healthcare AI** | Uses a server-side Groq-compatible API proxy with health-information safety instructions. |
 | ☁️ **Serverless Inference** | `/api/chat` keeps provider credentials on the server and is compatible with Vercel Functions. |
 | 🧍 **Interactive Body Map** | Pinpoint exactly where it hurts using a clickable SVG human anatomy map. |
@@ -66,11 +65,8 @@ Whether you are logging a minor headache using the interactive body map, uploadi
 ### **Frontend**
 - **HTML5 & CSS3:** Semantic markup, CSS Custom Properties, Glassmorphism aesthetics, and keyframe animations.
 - **Vanilla JavaScript (ES6+):** Modular DOM manipulation, asynchronous API handling, and event-driven architecture.
-- **Firebase:** Google OAuth Authentication logic.
-
 ### **Backend & APIs**
-- **Vercel Serverless Functions:** Node.js API routes handling business logic (`/api/chat`, `/api/getHistory`, etc.).
-- **NeonDB:** Serverless PostgreSQL database for persistent user data and chat session storage.
+- **Netlify Functions-compatible API routes:** Node.js API routes handling business logic (`/api/chat`, `/api/medicineSearch`).
 
 ### **Artificial Intelligence Engine**
 - **Provider:** Groq's OpenAI-compatible API, called only from the server-side `/api/chat` route.
@@ -85,15 +81,10 @@ Whether you are logging a minor headache using the interactive body map, uploadi
 Vitalis-AI/
 ├── api/                 # Vercel Serverless Functions (Node.js/Postgres/Fetch)
 │   ├── chat.js          # Securely proxies chat requests to the configured AI provider
-│   ├── getUser.js       # Fetches user demographics from NeonDB
-│   ├── saveUser.js      # Saves new Google Auth users into NeonDB
-│   ├── getHistory.js    # Fetches past chat sessions and messages
-│   ├── saveMessage.js   # Saves chat messages with session IDs
-│   ├── renameChat.js    # Renames an existing chat session
-│   └── deleteChat.js    # Deletes an entire chat session
+│   ├── medicineSearch.js # Searches public medicine labels through openFDA
 ├── assets/              # Logos, demo GIFs, and screenshot images
 ├── index.html           # Main UI dashboard and modal layouts
-├── script.js            # Core frontend logic, Firebase Auth, and DOM interactions
+├── script.js            # Core frontend logic and DOM interactions
 ├── style.css            # Responsive styles, theme variables, and animations
 ├── package.json         # Backend dependencies (pg, dotenv)
 ├── vercel.json          # Deployment configuration (optional)
@@ -116,9 +107,8 @@ Create a `.env` file in the root directory based on `.env.example`:
 ```env
 GROQ_API_KEY="gsk_..."
 GROQ_MODEL="openai/gpt-oss-20b"
-DATABASE_URL="postgresql://<user>:<password>@<neon-host>/neondb?sslmode=require"
 ```
-`GROQ_API_KEY` is required for live AI responses. `DATABASE_URL` is optional for local development. Firebase web configuration is public client configuration; restrict its authorized domains in Firebase Console.
+`GROQ_API_KEY` is required for live AI responses.
 
 ### 3. Run Locally
 For the lightweight local server:
@@ -129,18 +119,16 @@ npm run dev
 The application is available at `http://localhost:3000`.
 
 ### 4. Deploy to Netlify
-Connect the repository in Netlify and publish the project root with no build command. Add `GROQ_API_KEY` and optionally `GROQ_MODEL` and `DATABASE_URL` under Site configuration > Environment variables, then redeploy. Never prefix server secrets with `VITE_`, `NEXT_PUBLIC_`, or another public-client prefix. Add the deployed domain to Firebase Authentication's authorized domains.
+Connect the repository in Netlify and publish the project root with no build command. Add `GROQ_API_KEY` and optionally `GROQ_MODEL` under Site configuration > Environment variables, then redeploy. Never prefix server secrets with `VITE_`, `NEXT_PUBLIC_`, or another public-client prefix.
 
 ---
 
 ## 💡 Usage Guide
 
-1. **Sign In:** Authenticate securely using the Google Sign-In popup.
-2. **Onboarding:** Enter your Age and Gender upon your first login.
-3. **Describe Symptoms:** Type your symptoms into the chat box, click the Microphone icon to dictate them, or use the Quick Action Prompts.
-4. **Visual Tools:** Utilize the Child Icon for the Body Map or the Thermometer for the pain scale.
-5. **Manage Consultations:** Navigate between past sessions using the left sidebar. Hover over any past session to rename or delete it.
-6. **Interact:** Receive structured educational health information from the server-side AI proxy. For urgent warning signs, contact local emergency services or a qualified clinician.
+1. **Describe Symptoms:** Type your symptoms into the chat box, click the Microphone icon to dictate them, or use the Quick Action Prompts.
+2. **Visual Tools:** Utilize the Child Icon for the Body Map or the Thermometer for the pain scale.
+3. **Review History:** View recent activity saved locally in your browser from the History tab.
+4. **Interact:** Receive structured educational health information from the server-side AI proxy. For urgent warning signs, contact local emergency services or a qualified clinician.
 
 ---
 

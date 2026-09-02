@@ -6,12 +6,6 @@ const path = require('path');
 // Load API routes dynamically
 const apiRoutes = {
   '/api/chat': require('./api/chat'),
-  '/api/getHistory': require('./api/getHistory'),
-  '/api/saveMessage': require('./api/saveMessage'),
-  '/api/deleteChat': require('./api/deleteChat'),
-  '/api/renameChat': require('./api/renameChat'),
-  '/api/saveUser': require('./api/saveUser'),
-  '/api/getUser': require('./api/getUser'),
   '/api/medicineSearch': require('./api/medicineSearch'),
 };
 
