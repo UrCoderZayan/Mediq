@@ -120,20 +120,16 @@ DATABASE_URL="postgresql://<user>:<password>@<neon-host>/neondb?sslmode=require"
 ```
 `GROQ_API_KEY` is required for live AI responses. `DATABASE_URL` is optional for local development. Firebase web configuration is public client configuration; restrict its authorized domains in Firebase Console.
 
-### 3. Run Locally (Vercel Dev)
+### 3. Run Locally
 For the lightweight local server:
 ```bash
 npm install
 npm run dev
 ```
-The application is available at `http://localhost:3000`. To test Vercel's serverless runtime locally, install the CLI and run `vercel dev` instead.
+The application is available at `http://localhost:3000`.
 
-### 4. Deploy to Production
-To deploy your application publicly:
-```bash
-vercel --prod
-```
-In Vercel Project Settings, add `GROQ_API_KEY` and optionally `GROQ_MODEL` and `DATABASE_URL` under the correct environments, then redeploy. Never prefix server secrets with `VITE_`, `NEXT_PUBLIC_`, or another public-client prefix. Add the deployed domain to Firebase Authentication's authorized domains.
+### 4. Deploy to Netlify
+Connect the repository in Netlify and publish the project root with no build command. Add `GROQ_API_KEY` and optionally `GROQ_MODEL` and `DATABASE_URL` under Site configuration > Environment variables, then redeploy. Never prefix server secrets with `VITE_`, `NEXT_PUBLIC_`, or another public-client prefix. Add the deployed domain to Firebase Authentication's authorized domains.
 
 ---
 

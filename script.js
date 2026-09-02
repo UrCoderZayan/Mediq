@@ -507,6 +507,16 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => toast.classList.remove("show"), 3000);
     }
 
+    function logFirebaseAuthError(error, context) {
+        console.error(`[Firebase Auth] ${context}`, {
+            code: error?.code || 'unknown',
+            name: error?.name || 'FirebaseError',
+            message: error?.message || 'No error message provided',
+            origin: window.location.origin,
+            hostname: window.location.hostname
+        });
+    }
+
     async function checkAndShowOnboarding(user) {
         // Fetch age/gender from NeonDB via our Vercel API
         try {
@@ -598,6 +608,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkFirebaseInterval = setInterval(() => {
         if (window.firebaseAuth) {
             clearInterval(checkFirebaseInterval);
+
+            window.firebaseAuth.getRedirectResult(window.firebaseAuth.auth).catch((error) => {
+                logFirebaseAuthError(error, 'Redirect sign-in failed');
+            });
             
             window.firebaseAuth.onAuthStateChanged(window.firebaseAuth.auth, (user) => {
                 if (user) {
@@ -620,8 +634,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 await window.firebaseAuth.signInWithPopup(window.firebaseAuth.auth, window.firebaseAuth.provider);
                 // onAuthStateChanged will handle the dashboard transition
             } catch (error) {
-                console.error("Google Sign-In Error:", error);
-                showToast("Sign in failed or was cancelled.");
+                logFirebaseAuthError(error, 'Google popup sign-in failed');
+
+                if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
+                    try {
+                        await window.firebaseAuth.signInWithRedirect(window.firebaseAuth.auth, window.firebaseAuth.provider);
+                        return;
+                    } catch (redirectError) {
+                        logFirebaseAuthError(redirectError, 'Google redirect sign-in failed');
+                    }
+                }
+
+                if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+                    showToast("Google sign-in was cancelled.");
+                } else {
+                    showToast("Google sign-in failed. Check the browser console for details.");
+                }
             }
         });
     }
