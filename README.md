@@ -48,7 +48,7 @@ Whether you are logging a minor headache using the interactive body map, uploadi
 | 🌐 **Open Access** | Use every Mediq feature immediately without an account or sign-in. |
 | 🗂️ **Local History** | Keep recent assistant, medicine, and health-tool activity in this browser. |
 | 🧠 **Secure Healthcare AI** | Uses a server-side Groq-compatible API proxy with health-information safety instructions. |
-| ☁️ **Serverless Inference** | `/api/chat` keeps provider credentials on the server and is compatible with Vercel Functions. |
+| ☁️ **Serverless Inference** | `/api/chat` keeps provider credentials on the server through Netlify Functions. |
 | 🧍 **Interactive Body Map** | Pinpoint exactly where it hurts using a clickable SVG human anatomy map. |
 | 🌡️ **Dynamic Pain Scale** | Log symptom severity with a visual 1-10 slider featuring animated emoji feedback. |
 | 💬 **Smart Suggestions** | Context-aware follow-up questions generated to guide the conversation. |
@@ -66,7 +66,7 @@ Whether you are logging a minor headache using the interactive body map, uploadi
 - **HTML5 & CSS3:** Semantic markup, CSS Custom Properties, Glassmorphism aesthetics, and keyframe animations.
 - **Vanilla JavaScript (ES6+):** Modular DOM manipulation, asynchronous API handling, and event-driven architecture.
 ### **Backend & APIs**
-- **Netlify Functions-compatible API routes:** Node.js API routes handling business logic (`/api/chat`, `/api/medicineSearch`).
+- **Netlify Functions:** Server-side handlers for AI and medicine search (`/api/chat`, `/api/medicineSearch`).
 
 ### **Artificial Intelligence Engine**
 - **Provider:** Groq's OpenAI-compatible API, called only from the server-side `/api/chat` route.
@@ -79,15 +79,17 @@ Whether you are logging a minor headache using the interactive body map, uploadi
 
 ```text
 Vitalis-AI/
-├── api/                 # Vercel Serverless Functions (Node.js/Postgres/Fetch)
+├── api/                 # Shared Node.js API handlers
 │   ├── chat.js          # Securely proxies chat requests to the configured AI provider
 │   ├── medicineSearch.js # Searches public medicine labels through openFDA
+├── netlify/
+│   └── functions/       # Netlify adapters for the shared API handlers
 ├── assets/              # Logos, demo GIFs, and screenshot images
 ├── index.html           # Main UI dashboard and modal layouts
 ├── script.js            # Core frontend logic and DOM interactions
 ├── style.css            # Responsive styles, theme variables, and animations
-├── package.json         # Backend dependencies (pg, dotenv)
-├── vercel.json          # Deployment configuration (optional)
+├── package.json         # Backend dependencies
+├── netlify.toml         # Netlify publish, function, and API redirect configuration
 └── README.md            # Project documentation
 ```
 

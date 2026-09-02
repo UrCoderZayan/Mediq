@@ -198,6 +198,14 @@ body.light-theme .float-item {
     pointer-events: none;
 }
 
+button,
+input,
+select,
+textarea,
+a {
+    pointer-events: auto;
+}
+
 .vignette {
     position: absolute;
     inset: 0;
